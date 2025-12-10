@@ -15,4 +15,3 @@ app.get("/", (req, res) => {
 // handles routing from router
 app.use("/api/products", productsRouter);
 app.listen(8000, () => console.log("listening 8000"));
-
