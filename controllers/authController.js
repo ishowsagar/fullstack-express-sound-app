@@ -81,6 +81,52 @@ export async function registerUser(req, res) {
   }
 }
 
+//! handles login function executed by authRouter on desired route
+export async function loginUser(req, res) {
+  // trimming to make sure no-whitespace conflicts any errors
+  const username = req.body.username?.trim();
+  const password = req.body.password?.trim();
+
+  // validate if all input-fields are there completed
+  if (!username || !password) {
+    return res.status(401).json({ error: "All fields are required" });
+  }
+
+  try {
+    const db = await getDBConnection();
+    // validate user details --> if this entry of user's data exists in db user table
+    // * found that user entry --> object stores pass,name properties etc... of that user
+    const userFound = await db.get(
+      `
+     select id,username,password from users
+       where username = ?
+     `,
+      [username]
+    );
+
+    // if failed to validate user -> this test failed
+    if (!userFound) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+    // pass validation with bcryptjs pkg (enteredPass, pass stored of that user in db user table)
+    const validatePass = await bcrypt.compare(password, userFound.password);
+    // if failed to validate password
+    if (!validatePass) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    // if nothing breaks the flow (validates from db <---->successfuly logged in)
+    // * validates & creates session with id that is found from found user
+    req.session.userId = userFound.id;
+
+    // added return fror consistency purpose only!
+    return res.json({ message: "Logged in" });
+  } catch (err) {
+    console.error("Login error:", err.message);
+    res.status(500).json({ error: "Login failed. Please try again." });
+  }
+}
+
 // refrence purpose only
 // body : {
 //   name: 'someName',
@@ -88,3 +134,18 @@ export async function registerUser(req, res) {
 //   username: 'someUsername',
 //   password: 'somePassword'
 // }
+
+//! handles log out functionality
+export async function logoutUser(req, res) {
+  //* .destroy(cb fnc --> checks for err , if not --> sends jsonRes)
+  req.session.destroy((err) => {
+    // if caught error while loggin out
+    if (err) {
+      console.error(err);
+      res.status(400).json({ error: "failed to log out" });
+    }
+
+    // if logged out successfully
+    res.json({ message: "Logged out" });
+  });
+}

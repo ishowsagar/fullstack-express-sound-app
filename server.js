@@ -2,6 +2,7 @@ import express from "express";
 import { productsRouter } from "./routes/product.js";
 import { authRouter } from "./routes/auth.js";
 import session from "express-session";
+import { meRouter } from "./routes/meRoutes.js";
 
 const app = express();
 // express code is executed from top to bottom 👇
@@ -46,6 +47,10 @@ app.use(
     },
   })
 );
+
+// to prevent route got overrided from the latter --> as base_route is common
+app.use("/api/auth/me", meRouter);
+
 // handles sign-in/up routes from authRouter
 app.use("/api/auth", authRouter);
 
