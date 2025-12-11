@@ -8,6 +8,17 @@ import { cartRouter } from "./routes/cart.js";
 const app = express();
 // express code is executed from top to bottom 👇
 // next --> component of middleware --> gets called when fn of middlewar (app.use) is completed
+// !as code is executed from top to bottom --> so then by order --> 1st,2nd mw executed
+// * this built-in express middleware (MW/mw) is called -->
+// serves the content from finding html file from dir mentioned
+app.use(express.static("public"));
+// then this get request if made*
+app.get("/", (req, res) => {
+  res.send("<!doctype html><html><body>Hello Express!</body></html>");
+});
+
+// handles routing from Productsrouter
+app.use("/api/products", productsRouter);
 
 // handles incoming chunks of body/data from client to server
 // * collects all chunks --> turn into body --> pass body to request object
@@ -38,12 +49,6 @@ app.use(
   })
 );
 
-// serves the content from finding html file from dir mentioned
-app.use(express.static("public"));
-
-// handles routing from Productsrouter
-app.use("/api/products", productsRouter);
-
 // to prevent route got overrided from the latter --> as base_route is common
 app.use("/api/auth/me", meRouter);
 
@@ -51,6 +56,6 @@ app.use("/api/auth/me", meRouter);
 app.use("/api/auth", authRouter);
 
 // handles add-to-cart router functionality
-app.use("/api/cart", cartRouter);
+app.use('/api/cart',cartRouter)
 
 app.listen(8000, () => console.log("listening 8000"));
